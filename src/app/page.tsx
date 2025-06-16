@@ -40,7 +40,7 @@ export default function Home() {
                     </h1>
                     <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
                         A comprehensive news and blog management system with analytics, payout calculation,
-                        and export features. Built with Next.js and Firebase Authentication.
+                        and export features. Built with Next.js and Google Authentication via Firebase.
                     </p>
                     <div className="space-x-4">
                         <Link href="/auth/signin">
@@ -99,7 +99,7 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                     <CardDescription>
-                        Secure authentication with Google OAuth and email/password using Firebase Auth.
+                        Secure authentication with Google OAuth using Firebase Auth.
                     </CardDescription>
                 </CardContent>
             </Card>
@@ -108,30 +108,31 @@ export default function Home() {
           {/* Demo Credentials */}
           <Card className="max-w-md mx-auto">
               <CardHeader>
-                  <CardTitle>Demo Credentials</CardTitle>
+                  <CardTitle>Google Authentication</CardTitle>
                   <CardDescription>
-                      Create these accounts in Firebase or use the demo accounts
+                      Sign in with your Google account to access the dashboard
                   </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <h4 className="font-semibold text-blue-900 dark:text-blue-100">Admin Account</h4>
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100">Admin Access</h4>
                       <p className="text-sm text-blue-700 dark:text-blue-300">
-                          Email: admin@example.com<br/>
-                          Password: admin123
+                          Admin privileges are granted based on your Google account email address.
+                          Update the admin emails list in the code to include your Gmail address.
                       </p>
                   </div>
                   <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <h4 className="font-semibold text-green-900 dark:text-green-100">User Account</h4>
+                      <h4 className="font-semibold text-green-900 dark:text-green-100">How to Use</h4>
                       <p className="text-sm text-green-700 dark:text-green-300">
-                          Email: user@example.com<br/>
-                          Password: user123
+                          1. Set up Firebase project with Google authentication<br/>
+                          2. Add your configuration to .env.local<br/>
+                          3. Sign in with your Google account
                       </p>
                   </div>
                   <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                       <h4 className="font-semibold text-orange-900 dark:text-orange-100">Firebase Setup</h4>
                       <p className="text-sm text-orange-700 dark:text-orange-300">
-                          Configure Firebase project with your credentials in .env.local
+                          Follow the Firebase setup guide to configure your project with Google authentication.
                       </p>
                   </div>
               </CardContent>

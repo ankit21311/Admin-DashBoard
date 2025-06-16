@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {useSession} from 'next-auth/react';
+import {useAuth} from '@/contexts/AuthContext';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState, AppDispatch} from '@/store';
 import {fetchNews, updatePayoutData, loadPayoutData} from '@/store/slices/newsSlice';
@@ -15,7 +15,7 @@ import {formatCurrency} from '@/lib/utils';
 import {toast} from 'react-hot-toast';
 
 export default function PayoutsPage() {
-    const {data: session} = useSession();
+    const {user} = useAuth();
     const dispatch = useDispatch<AppDispatch>();
     const {articles, payoutData, isLoading} = useSelector((state: RootState) => state.news);
     const [editingRates, setEditingRates] = useState<{ [key: string]: number }>({});
@@ -26,7 +26,7 @@ export default function PayoutsPage() {
     }, [dispatch]);
 
     // Check if user is admin
-    const isAdmin = (session?.user as any)?.role === 'admin';
+    const isAdmin = user?.role === 'admin';
 
     // Calculate author statistics
     const authorStats = articles.reduce((acc: any, article) => {
