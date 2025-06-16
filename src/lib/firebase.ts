@@ -10,7 +10,7 @@ import {
     onAuthStateChanged,
     User
 } from 'firebase/auth';
-import {getFirestore, doc, setDoc, getDoc, updateDoc} from 'firebase/firestore';
+import {getFirestore, doc, setDoc, getDoc, updateDoc, enableNetwork, disableNetwork} from 'firebase/firestore';
 import {getAnalytics, isSupported} from 'firebase/analytics';
 
 const firebaseConfig = {
@@ -47,22 +47,49 @@ googleProvider.setCustomParameters({
 });
 
 // Auth functions
-export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
+export const signInWithGoogle = async () => {
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        console.log('Google sign-in successful:', result.user.email);
+        return result;
+    } catch (error) {
+        console.error('Google sign-in error:', error);
+        throw error;
+    }
+};
 
-export const signInWithEmail = (email: string, password: string) =>
-    signInWithEmailAndPassword(auth, email, password);
+export const signInWithEmail = async (email: string, password: string) => {
+    try {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        console.log('Email sign-in successful:', result.user.email);
+        return result;
+    } catch (error) {
+        console.error('Email sign-in error:', error);
+        throw error;
+    }
+};
 
 export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-    // Update user profile
-    await updateProfile(user, {displayName});
+        // Update user profile
+        await updateProfile(user, {displayName});
 
-    // Create user document in Firestore
-    await createUserDocument(user, {displayName});
+        // Create user document in Firestore (with error handling)
+        try {
+            await createUserDocument(user, {displayName});
+        } catch (firestoreError) {
+            console.warn('Firestore operation failed, but user created:', firestoreError);
+        }
 
-    return userCredential;
+        console.log('Email sign-up successful:', user.email);
+        return userCredential;
+    } catch (error) {
+        console.error('Email sign-up error:', error);
+        throw error;
+    }
 };
 
 export const logout = () => signOut(auth);
@@ -70,18 +97,18 @@ export const logout = () => signOut(auth);
 export const onAuthStateChange = (callback: (user: User | null) => void) =>
     onAuthStateChanged(auth, callback);
 
-// Firestore functions for user data
+// Firestore functions for user data with error handling
 export const createUserDocument = async (user: User, additionalData = {}) => {
     if (!user) return;
 
-    const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
+    try {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
 
-    if (!userSnap.exists()) {
-        const {displayName, email, photoURL} = user;
-        const createdAt = new Date();
+        if (!userSnap.exists()) {
+            const {displayName, email, photoURL} = user;
+            const createdAt = new Date();
 
-        try {
             await setDoc(userRef, {
                 displayName,
                 email,
@@ -91,17 +118,21 @@ export const createUserDocument = async (user: User, additionalData = {}) => {
                 role: determineUserRole(email || ''),
                 ...additionalData
             });
-        } catch (error) {
-            console.error('Error creating user document:', error);
+            console.log('User document created successfully');
+        } else {
+            // Update last login time
+            await updateDoc(userRef, {
+                lastLoginAt: new Date()
+            });
+            console.log('User document updated successfully');
         }
-    } else {
-        // Update last login time
-        await updateDoc(userRef, {
-            lastLoginAt: new Date()
-        });
-    }
 
-    return userRef;
+        return userRef;
+    } catch (error) {
+        console.error('Firestore operation failed:', error);
+        // Don't throw error - allow authentication to continue without Firestore
+        return null;
+    }
 };
 
 export const getUserDocument = async (uid: string) => {
@@ -112,10 +143,12 @@ export const getUserDocument = async (uid: string) => {
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
+            console.log('User document fetched successfully');
             return {id: userSnap.id, ...userSnap.data()};
         }
     } catch (error) {
         console.error('Error getting user document:', error);
+        // Return null instead of throwing - allow app to continue
     }
 
     return null;
@@ -130,8 +163,10 @@ export const updateUserDocument = async (uid: string, data: any) => {
             ...data,
             updatedAt: new Date()
         });
+        console.log('User document updated successfully');
     } catch (error) {
         console.error('Error updating user document:', error);
+        throw error; // Throw for profile updates since user expects feedback
     }
 };
 

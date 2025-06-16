@@ -54,27 +54,65 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
 
     const fetchUserData = async (firebaseUser: User) => {
         try {
-            // Create user document if it doesn't exist
-            await createUserDocument(firebaseUser);
-
-            // Fetch user data from Firestore
-            const userData = await getUserDocument(firebaseUser.uid);
+            console.log('Fetching user data for:', firebaseUser.email);
 
             // Determine user role
             const role = determineUserRole(firebaseUser.email || '');
 
-            setUser({
-                ...firebaseUser,
-                role,
-                userData: userData as UserData
-            } as AuthUser);
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-            // Fallback to basic user info
-            const role = determineUserRole(firebaseUser.email || '');
-            setUser({...firebaseUser, role} as AuthUser);
+            // Try to create/update user document in Firestore
+            try {
+                await createUserDocument(firebaseUser);
+            } catch (error) {
+                console.warn('Firestore operation failed, continuing without user document:', error);
+            }
+
+            // Try to fetch user data from Firestore
+            let userData: UserData | null = null;
+            try {
+                const fetchedData = await getUserDocument(firebaseUser.uid);
+                if (fetchedData && typeof fetchedData === 'object') {
+                    userData = fetchedData as UserData;
         }
-    };
+      } catch (error) {
+          console.warn('Failed to fetch user document, using basic user info:', error);
+      }
+
+        // Set user with available data
+        const userWithRole = {
+            ...firebaseUser,
+            role,
+            userData: userData || {
+                id: firebaseUser.uid,
+                displayName: firebaseUser.displayName || '',
+                email: firebaseUser.email || '',
+                photoURL: firebaseUser.photoURL || '',
+                role,
+                createdAt: new Date(),
+                lastLoginAt: new Date(),
+            } as UserData
+      } as AuthUser;
+
+        setUser(userWithRole);
+        console.log('User data loaded successfully for:', firebaseUser.email);
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        // Fallback to basic user info
+        const role = determineUserRole(firebaseUser.email || '');
+        setUser({
+            ...firebaseUser,
+            role,
+            userData: {
+                id: firebaseUser.uid,
+                displayName: firebaseUser.displayName || '',
+                email: firebaseUser.email || '',
+                photoURL: firebaseUser.photoURL || '',
+                role,
+                createdAt: new Date(),
+                lastLoginAt: new Date(),
+            } as UserData
+      } as AuthUser);
+    }
+  };
 
     const refreshUserData = async () => {
         if (user) {
@@ -83,14 +121,23 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
     };
 
     useEffect(() => {
+        console.log('Setting up auth state listener...');
         const unsubscribe = onAuthStateChange(async (firebaseUser) => {
-            if (firebaseUser) {
-                await fetchUserData(firebaseUser);
-            } else {
-                setUser(null);
-            }
-            setLoading(false);
-        });
+            try {
+                if (firebaseUser) {
+                    console.log('User signed in:', firebaseUser.email);
+                    await fetchUserData(firebaseUser);
+                } else {
+                    console.log('User signed out');
+                    setUser(null);
+        }
+      } catch (error) {
+          console.error('Auth state change error:', error);
+          setUser(null);
+      } finally {
+          setLoading(false);
+      }
+    });
 
       return unsubscribe;
   }, []);

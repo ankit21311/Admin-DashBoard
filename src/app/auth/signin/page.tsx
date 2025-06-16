@@ -18,8 +18,10 @@ export default function SignIn() {
     const router = useRouter();
     const {user, loading} = useAuth();
 
+    // Handle redirect when user is authenticated
     useEffect(() => {
         if (!loading && user) {
+            console.log('User authenticated, redirecting to dashboard...');
             router.push('/dashboard');
         }
     }, [user, loading, router]);
@@ -28,65 +30,83 @@ export default function SignIn() {
         e.preventDefault();
         setIsLoading(true);
 
-        try {
-            if (isSignUp) {
-                await signUpWithEmail(email, password, name);
-                toast.success('Account created successfully!');
-            } else {
-                await signInWithEmail(email, password);
-                toast.success('Successfully signed in!');
-            }
-            router.push('/dashboard');
-        } catch (error: any) {
-            let errorMessage = 'Authentication failed';
+      try {
+          if (isSignUp) {
+              console.log('Creating new account...');
+              await signUpWithEmail(email, password, name);
+              toast.success('Account created successfully!');
+          } else {
+              console.log('Signing in with email...');
+              await signInWithEmail(email, password);
+              toast.success('Successfully signed in!');
+          }
 
-            switch (error.code) {
-                case 'auth/user-not-found':
-                    errorMessage = 'No account found with this email';
-                    break;
-                case 'auth/wrong-password':
-                    errorMessage = 'Incorrect password';
-                    break;
-                case 'auth/email-already-in-use':
-                    errorMessage = 'Email already in use';
-                    break;
-                case 'auth/weak-password':
-                    errorMessage = 'Password should be at least 6 characters';
-                    break;
-                case 'auth/invalid-email':
-                    errorMessage = 'Invalid email address';
-                    break;
-                default:
-                    errorMessage = error.message || 'Authentication failed';
-            }
+          // Don't manually redirect - let the useEffect handle it
+          console.log('Authentication successful - waiting for auth state update...');
 
-            toast.error(errorMessage);
-        } finally {
-            setIsLoading(false);
+      } catch (error: any) {
+          console.error('Email auth error:', error);
+          let errorMessage = 'Authentication failed';
+
+        switch (error.code) {
+            case 'auth/user-not-found':
+                errorMessage = 'No account found with this email';
+                break;
+            case 'auth/wrong-password':
+                errorMessage = 'Incorrect password';
+                break;
+            case 'auth/email-already-in-use':
+                errorMessage = 'Email already in use';
+                break;
+            case 'auth/weak-password':
+                errorMessage = 'Password should be at least 6 characters';
+                break;
+            case 'auth/invalid-email':
+                errorMessage = 'Invalid email address';
+                break;
+            case 'auth/invalid-credential':
+                errorMessage = 'Invalid email or password';
+                break;
+            default:
+                errorMessage = error.message || 'Authentication failed';
         }
-    };
+
+        toast.error(errorMessage);
+    } finally {
+        setIsLoading(false);
+    }
+  };
 
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
+
         try {
+            console.log('Starting Google sign-in...');
             await signInWithGoogle();
             toast.success('Successfully signed in with Google!');
-            router.push('/dashboard');
+
+            // Don't manually redirect - let the useEffect handle it
+            console.log('Google authentication successful - waiting for auth state update...');
+
         } catch (error: any) {
+            console.error('Google auth error:', error);
             let errorMessage = 'Google sign in failed';
 
-            switch (error.code) {
-                case 'auth/popup-closed-by-user':
-                    errorMessage = 'Sign in was cancelled';
-                    break;
-                case 'auth/popup-blocked':
-                    errorMessage = 'Popup was blocked by browser';
-                    break;
-                case 'auth/network-request-failed':
-                    errorMessage = 'Network error occurred';
-                    break;
-                default:
-                    errorMessage = error.message || 'Google sign in failed';
+        switch (error.code) {
+            case 'auth/popup-closed-by-user':
+                errorMessage = 'Sign in was cancelled';
+                break;
+            case 'auth/popup-blocked':
+                errorMessage = 'Popup was blocked by browser';
+                break;
+            case 'auth/network-request-failed':
+                errorMessage = 'Network error occurred';
+                break;
+            case 'auth/unauthorized-domain':
+                errorMessage = 'Domain not authorized for Google sign-in';
+                break;
+            default:
+                errorMessage = error.message || 'Google sign in failed';
       }
 
         toast.error(errorMessage);
@@ -101,32 +121,54 @@ export default function SignIn() {
             user: {email: 'user@example.com', password: 'user123'}
         };
 
-        setEmail(demoCredentials[demoType].email);
-        setPassword(demoCredentials[demoType].password);
+      setEmail(demoCredentials[demoType].email);
+      setPassword(demoCredentials[demoType].password);
 
-        setIsLoading(true);
-        try {
-            await signInWithEmail(demoCredentials[demoType].email, demoCredentials[demoType].password);
-            toast.success(`Signed in as demo ${demoType}!`);
-            router.push('/dashboard');
-        } catch (error) {
-            toast.error(`Demo ${demoType} account not found. Please create it first using the sign-up form.`);
+      setIsLoading(true);
+
+      try {
+          console.log(`Signing in with demo ${demoType} account...`);
+          await signInWithEmail(demoCredentials[demoType].email, demoCredentials[demoType].password);
+          toast.success(`Signed in as demo ${demoType}!`);
+
+          // Don't manually redirect - let the useEffect handle it
+          console.log('Demo authentication successful - waiting for auth state update...');
+
+      } catch (error: any) {
+          console.error('Demo auth error:', error);
+          if (error.code === 'auth/user-not-found') {
+              toast.error(`Demo ${demoType} account not found. Please create it first using the sign-up form.`);
+          } else {
+              toast.error(`Demo ${demoType} sign-in failed: ${error.message}`);
+          }
     } finally {
         setIsLoading(false);
     }
   };
 
+    // Show loading spinner while checking auth state
     if (loading) {
     return (
         <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
+      </div>
     );
   }
 
+    // Don't render anything if user is authenticated (will redirect)
     if (user) {
-        return null; // Will redirect
-    }
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">Redirecting to dashboard...</p>
+            </div>
+        </div>
+    );
+  }
 
     return (
         <div
@@ -179,28 +221,28 @@ export default function SignIn() {
                       {isLoading ? 'Signing in...' : 'Continue with Google'}
                   </Button>
 
-              <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t"/>
+                  <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t"/>
               </div>
                 <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
                   Or continue with email
                 </span>
-                </div>
+              </div>
             </div>
 
               {/* Email/Password Form */}
               <form onSubmit={handleEmailAuth} className="space-y-4">
                   {isSignUp && (
-                      <div>
-                          <Input
-                              type="text"
-                              placeholder="Full Name"
-                              value={name}
-                              onChange={(e) => setName(e.target.value)}
-                              required
-                          />
+                <div>
+                    <Input
+                        type="text"
+                        placeholder="Full Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
                 </div>
               )}
                 <div>
@@ -232,6 +274,7 @@ export default function SignIn() {
                       type="button"
                       onClick={() => setIsSignUp(!isSignUp)}
                       className="text-sm text-primary hover:underline"
+                      disabled={isLoading}
                   >
                       {isSignUp
                           ? 'Already have an account? Sign in'
