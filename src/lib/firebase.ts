@@ -51,6 +51,10 @@ export const signInWithGoogle = async () => {
     try {
         const result = await signInWithPopup(auth, googleProvider);
         console.log('Google sign-in successful:', result.user.email);
+
+        // Create/update user document in background (fire-and-forget)
+        createUserDocumentBackground(result.user);
+
         return result;
     } catch (error) {
         console.error('Google sign-in error:', error);
@@ -62,6 +66,10 @@ export const signInWithEmail = async (email: string, password: string) => {
     try {
         const result = await signInWithEmailAndPassword(auth, email, password);
         console.log('Email sign-in successful:', result.user.email);
+
+        // Create/update user document in background (fire-and-forget)
+        createUserDocumentBackground(result.user);
+
         return result;
     } catch (error) {
         console.error('Email sign-in error:', error);
@@ -77,12 +85,8 @@ export const signUpWithEmail = async (email: string, password: string, displayNa
         // Update user profile
         await updateProfile(user, {displayName});
 
-        // Create user document in Firestore (with error handling)
-        try {
-            await createUserDocument(user, {displayName});
-        } catch (firestoreError) {
-            console.warn('Firestore operation failed, but user created:', firestoreError);
-        }
+        // Create user document in Firestore in background (fire-and-forget)
+        createUserDocumentBackground(user, {displayName});
 
         console.log('Email sign-up successful:', user.email);
         return userCredential;
@@ -133,6 +137,20 @@ export const createUserDocument = async (user: User, additionalData = {}) => {
         // Don't throw error - allow authentication to continue without Firestore
         return null;
     }
+};
+
+// Background Firestore operations (non-blocking)
+export const createUserDocumentBackground = (user: User, additionalData = {}) => {
+    if (!user) return;
+
+    // Run in background without blocking authentication
+    setTimeout(async () => {
+        try {
+            await createUserDocument(user, additionalData);
+        } catch (error) {
+            console.warn('Background Firestore operation failed:', error);
+        }
+    }, 100); // Small delay to ensure authentication completes first
 };
 
 export const getUserDocument = async (uid: string) => {

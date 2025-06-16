@@ -15,7 +15,7 @@ export default function Home() {
     useEffect(() => {
         if (!loading && user) {
             console.log('User is authenticated, redirecting to dashboard...');
-            router.push('/dashboard');
+            router.replace('/dashboard'); // Use replace instead of push for faster redirect
         }
     }, [user, loading, router]);
 
@@ -123,7 +123,7 @@ export default function Home() {
                     <CardHeader>
                         <CardTitle>Authentication Options</CardTitle>
                         <CardDescription>
-                            Multiple ways to access the dashboard
+                            Secure access to your dashboard
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -131,22 +131,13 @@ export default function Home() {
                             <h4 className="font-semibold text-blue-900 dark:text-blue-100">🔐 Google Authentication</h4>
                             <p className="text-sm text-blue-700 dark:text-blue-300">
                                 Sign in with your Google account for seamless access. Admin privileges are granted based
-                                on your email address.
+                                on your email address configuration.
                             </p>
                         </div>
                         <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                             <h4 className="font-semibold text-green-900 dark:text-green-100">📧 Email/Password</h4>
                             <p className="text-sm text-green-700 dark:text-green-300">
-                                Create an account or sign in with email and password. Demo accounts available for
-                                testing.
-                            </p>
-                        </div>
-                        <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                            <h4 className="font-semibold text-orange-900 dark:text-orange-100">🧪 Demo Accounts</h4>
-                            <p className="text-sm text-orange-700 dark:text-orange-300">
-                                <strong>Admin:</strong> admin@example.com / admin123<br/>
-                                <strong>User:</strong> user@example.com / user123<br/>
-                                <em>Create these accounts first if they don't exist</em>
+                                Create an account or sign in with email and password for secure access to the dashboard.
                             </p>
                         </div>
                     </CardContent>
@@ -160,14 +151,9 @@ export default function Home() {
                                 Sign In / Sign Up
                             </Button>
                         </Link>
-                        <Link href="/test-auth">
-                            <Button variant="outline" size="lg" className="mb-4">
-                                Test Authentication
-                            </Button>
-                        </Link>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                        New to the platform? Click "Sign In / Sign Up" and toggle to create an account.
+                        New to the platform? Click "Sign In / Sign Up" to create an account or access your dashboard.
                     </p>
                 </div>
             </div>

@@ -137,6 +137,26 @@ const newsSlice = createSlice({
                 }
             }
         },
+        initializePayoutData: (state) => {
+            // Initialize payout data for all authors if not already set
+            const authors = Array.from(new Set(state.articles.map(article => article.author)));
+
+            authors.forEach(author => {
+                if (!state.payoutData[author]) {
+                    const authorArticles = state.articles.filter(article => article.author === author);
+                    state.payoutData[author] = {
+                        perArticle: 50, // Default $50 per article
+                        count: authorArticles.length,
+                        total: authorArticles.length * 50
+                    };
+                }
+            });
+
+            // Save updated payout data
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('payoutData', JSON.stringify(state.payoutData));
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -158,5 +178,5 @@ const newsSlice = createSlice({
     },
 });
 
-export const {setFilters, clearFilters, updatePayoutData, loadPayoutData} = newsSlice.actions;
+export const {setFilters, clearFilters, updatePayoutData, loadPayoutData, initializePayoutData} = newsSlice.actions;
 export default newsSlice.reducer;

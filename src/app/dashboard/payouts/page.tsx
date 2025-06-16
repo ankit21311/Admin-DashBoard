@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import {useAuth} from '@/contexts/AuthContext';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState, AppDispatch} from '@/store';
-import {fetchNews, updatePayoutData, loadPayoutData} from '@/store/slices/newsSlice';
+import {fetchNews, updatePayoutData, loadPayoutData, initializePayoutData} from '@/store/slices/newsSlice';
 import DashboardLayout from '@/components/layout/dashboard-layout';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
@@ -25,6 +25,7 @@ export default function PayoutsPage() {
         if (!dataLoaded) {
             dispatch(fetchNews());
             dispatch(loadPayoutData());
+            dispatch(initializePayoutData());
             setDataLoaded(true);
         }
     }, [dispatch, dataLoaded]);

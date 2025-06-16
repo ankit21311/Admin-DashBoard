@@ -3,7 +3,7 @@
 import {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState, AppDispatch} from '@/store';
-import {fetchNews, loadPayoutData} from '@/store/slices/newsSlice';
+import {fetchNews, loadPayoutData, initializePayoutData} from '@/store/slices/newsSlice';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {FileText, TrendingUp, DollarSign, Users} from 'lucide-react';
 import {formatCurrency} from '@/lib/utils';
@@ -52,46 +52,50 @@ export default function Dashboard() {
 
     useEffect(() => {
         if (!dataLoaded) {
-            dispatch(fetchNews());
-            dispatch(loadPayoutData());
+            const loadData = async () => {
+                dispatch(loadPayoutData());
+                await dispatch(fetchNews());
+                dispatch(initializePayoutData());
+            };
+            loadData();
             setDataLoaded(true);
-    }
-  }, [dispatch, dataLoaded]);
+        }
+    }, [dispatch, dataLoaded]);
 
     // Show loading state while data is being fetched
     if (isLoading && !dataLoaded) {
-    return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[...Array(4)].map((_, i) => (
-                    <Card key={i} className="animate-pulse">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                  <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              </CardHeader>
-              <CardContent>
-                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {[...Array(2)].map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                      <CardHeader>
-                          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
-              </CardHeader>
-              <CardContent>
-                  <div className="h-[300px] bg-gray-200 dark:bg-gray-700 rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+        return (
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[...Array(4)].map((_, i) => (
+                        <Card key={i} className="animate-pulse">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                                <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
+                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {[...Array(2)].map((_, i) => (
+                        <Card key={i} className="animate-pulse">
+                            <CardHeader>
+                                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
+                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[300px] bg-gray-200 dark:bg-gray-700 rounded"></div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     // Calculate statistics
     const newsCount = articles.filter(article => article.type === 'news').length;
@@ -210,63 +214,63 @@ export default function Dashboard() {
                         </p>
                     </CardContent>
                 </Card>
-      </div>
+            </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle>Content Distribution</CardTitle>
+                        <CardDescription>
+                            Distribution of news articles vs blog posts
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[300px] flex items-center justify-center">
+                            <LazyDoughnut data={typeChartData} options={doughnutOptions}/>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                        <CardTitle>Top Authors</CardTitle>
+                        <CardDescription>
+                            Top 5 authors by article count
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[300px]">
+                            <LazyBar data={authorChartData} options={chartOptions}/>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Recent Articles */}
             <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                    <CardTitle>Content Distribution</CardTitle>
+                    <CardTitle>Recent Articles</CardTitle>
                     <CardDescription>
-                        Distribution of news articles vs blog posts
+                        Latest articles and blog posts
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="h-[300px] flex items-center justify-center">
-                        <LazyDoughnut data={typeChartData} options={doughnutOptions}/>
-                    </div>
-                </CardContent>
-            </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                  <CardTitle>Top Authors</CardTitle>
-                  <CardDescription>
-                      Top 5 authors by article count
-                  </CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <div className="h-[300px]">
-                      <LazyBar data={authorChartData} options={chartOptions}/>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-        {/* Recent Articles */}
-        <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-                <CardTitle>Recent Articles</CardTitle>
-                <CardDescription>
-                    Latest articles and blog posts
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    {articles.slice(0, 5).map((article) => (
-                        <div
-                            key={article.id}
-                            className="flex items-center space-x-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        >
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                    {article.title}
-                                </p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    By {article.author} • {new Date(article.publishedAt).toLocaleDateString()}
-                                </p>
-                            </div>
-                            <div className="flex-shrink-0">
+                    <div className="space-y-4">
+                        {articles.slice(0, 5).map((article) => (
+                            <div
+                                key={article.id}
+                                className="flex items-center space-x-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            >
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                        {article.title}
+                                    </p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        By {article.author} • {new Date(article.publishedAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <div className="flex-shrink-0">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       article.type === 'news'
                           ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
@@ -275,17 +279,17 @@ export default function Dashboard() {
                     {article.type}
                   </span>
                 </div>
-              </div>
-            ))}
-          </div>
-            {articles.length === 0 && (
-                <div className="text-center py-8">
-                    <p className="text-gray-500 dark:text-gray-400">No articles available. Check your news API
-                        configuration.</p>
-                </div>
-            )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+                            </div>
+                        ))}
+                    </div>
+                    {articles.length === 0 && (
+                        <div className="text-center py-8">
+                            <p className="text-gray-500 dark:text-gray-400">No articles available. Check your news API
+                                configuration.</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    );
 }
