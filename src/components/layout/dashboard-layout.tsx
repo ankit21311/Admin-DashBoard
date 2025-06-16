@@ -22,7 +22,6 @@ import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {cn} from '@/lib/utils';
 import {useAuth} from '@/contexts/AuthContext';
-import {logout} from '@/lib/firebase';
 import {toast} from 'react-hot-toast';
 
 interface DashboardLayoutProps {
@@ -40,14 +39,14 @@ const navigation = [
 ];
 
 export default function DashboardLayout({children}: DashboardLayoutProps) {
-    const {user} = useAuth();
+    const {user, signOut} = useAuth();
     const dispatch = useDispatch();
     const {sidebarOpen, darkMode} = useSelector((state: RootState) => state.ui);
     const pathname = usePathname();
 
-    const handleSignOut = async () => {
+    const handleSignOut = () => {
         try {
-            await logout();
+            signOut();
             toast.success('Successfully signed out');
         } catch (error) {
             toast.error('Error signing out');
