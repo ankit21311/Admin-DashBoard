@@ -1,10 +1,10 @@
 'use client';
 
-import {SessionProvider} from 'next-auth/react';
 import {Provider} from 'react-redux';
 import {store} from '@/store';
 import {Toaster} from 'react-hot-toast';
 import {ThemeProvider} from '@/components/theme-provider';
+import {AuthProvider} from '@/contexts/AuthContext';
 
 interface ProvidersProps {
     children: React.ReactNode;
@@ -12,7 +12,7 @@ interface ProvidersProps {
 
 export default function Providers({children}: ProvidersProps) {
     return (
-        <SessionProvider>
+        <AuthProvider>
             <Provider store={store}>
                 <ThemeProvider>
                     {children}
@@ -29,6 +29,6 @@ export default function Providers({children}: ProvidersProps) {
                     />
                 </ThemeProvider>
             </Provider>
-        </SessionProvider>
+        </AuthProvider>
     );
 }
