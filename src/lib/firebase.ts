@@ -3,11 +3,14 @@ import {
     getAuth,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    updateProfile,
     signOut,
     onAuthStateChanged,
     User
 } from 'firebase/auth';
-import {getFirestore} from 'firebase/firestore';
+import {getFirestore, doc, setDoc, getDoc, updateDoc} from 'firebase/firestore';
 import {getAnalytics, isSupported} from 'firebase/analytics';
 
 const firebaseConfig = {
@@ -46,10 +49,102 @@ googleProvider.setCustomParameters({
 // Auth functions
 export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
 
+export const signInWithEmail = (email: string, password: string) =>
+    signInWithEmailAndPassword(auth, email, password);
+
+export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Update user profile
+    await updateProfile(user, {displayName});
+
+    // Create user document in Firestore
+    await createUserDocument(user, {displayName});
+
+    return userCredential;
+};
+
 export const logout = () => signOut(auth);
 
 export const onAuthStateChange = (callback: (user: User | null) => void) =>
     onAuthStateChanged(auth, callback);
+
+// Firestore functions for user data
+export const createUserDocument = async (user: User, additionalData = {}) => {
+    if (!user) return;
+
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+        const {displayName, email, photoURL} = user;
+        const createdAt = new Date();
+
+        try {
+            await setDoc(userRef, {
+                displayName,
+                email,
+                photoURL,
+                createdAt,
+                lastLoginAt: createdAt,
+                role: determineUserRole(email || ''),
+                ...additionalData
+            });
+        } catch (error) {
+            console.error('Error creating user document:', error);
+        }
+    } else {
+        // Update last login time
+        await updateDoc(userRef, {
+            lastLoginAt: new Date()
+        });
+    }
+
+    return userRef;
+};
+
+export const getUserDocument = async (uid: string) => {
+    if (!uid) return null;
+
+    try {
+        const userRef = doc(db, 'users', uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+            return {id: userSnap.id, ...userSnap.data()};
+        }
+    } catch (error) {
+        console.error('Error getting user document:', error);
+    }
+
+    return null;
+};
+
+export const updateUserDocument = async (uid: string, data: any) => {
+    if (!uid) return;
+
+    try {
+        const userRef = doc(db, 'users', uid);
+        await updateDoc(userRef, {
+            ...data,
+            updatedAt: new Date()
+        });
+    } catch (error) {
+        console.error('Error updating user document:', error);
+    }
+};
+
+// Determine user role based on email
+const determineUserRole = (email: string): 'admin' | 'user' => {
+    const adminEmails = [
+        'admin@example.com',
+        'admin@gmail.com',
+        // Add your admin emails here
+    ];
+
+    return adminEmails.includes(email.toLowerCase()) ? 'admin' : 'user';
+};
 
 export {auth, db, analytics};
 export default app;

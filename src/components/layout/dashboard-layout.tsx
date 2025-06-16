@@ -15,7 +15,8 @@ import {
     Moon,
     BarChart3,
     DollarSign,
-    Download
+    Download,
+    Users
 } from 'lucide-react';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
@@ -34,6 +35,7 @@ const navigation = [
     {name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3},
     {name: 'Payouts', href: '/dashboard/payouts', icon: DollarSign},
     {name: 'Reports', href: '/dashboard/reports', icon: Download},
+    {name: 'Profile', href: '/dashboard/profile', icon: Users},
     {name: 'Settings', href: '/dashboard/settings', icon: Settings},
 ];
 
@@ -89,88 +91,88 @@ export default function DashboardLayout({children}: DashboardLayoutProps) {
                     </div>
                 </nav>
 
-          {/* User info */}
-          <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                {/* User info */}
+                <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-primary-foreground">
                   {user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
-            </div>
-              <div className="ml-3 flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {user?.displayName || user?.email || 'User'}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {user?.role === 'admin' ? 'Administrator' : 'User'}
-                  </p>
-              </div>
-          </div>
-        </div>
-      </div>
-
-        {/* Main content area */}
-        <div className="flex-1 flex flex-col overflow-hidden md:ml-0">
-            {/* Top navigation */}
-            <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center py-4">
-                        <div className="flex items-center">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => dispatch(toggleSidebar())}
-                                className="md:hidden"
-                            >
-                                <Menu className="h-5 w-5"/>
-                            </Button>
-                            <h2 className="ml-2 text-xl font-semibold text-gray-900 dark:text-white">
-                                {navigation.find(item => item.href === pathname)?.name || 'Dashboard'}
-                            </h2>
                         </div>
-
-                <div className="flex items-center space-x-4">
-                    {/* Dark mode toggle */}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => dispatch(toggleDarkMode())}
-                    >
-                        {darkMode ? <Sun className="h-5 w-5"/> : <Moon className="h-5 w-5"/>}
-                    </Button>
-
-                  {/* Sign out button */}
-                  <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSignOut}
-                  >
-                      <LogOut className="h-5 w-5"/>
-                  </Button>
-              </div>
+                        <div className="ml-3 flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                {user?.displayName || user?.email || 'User'}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {user?.role === 'admin' ? 'Administrator' : 'User'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </header>
 
-          {/* Page content */}
-          <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-              <div className="py-6">
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                      {children}
+            {/* Main content area */}
+            <div className="flex-1 flex flex-col overflow-hidden md:ml-0">
+                {/* Top navigation */}
+                <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex justify-between items-center py-4">
+                            <div className="flex items-center">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => dispatch(toggleSidebar())}
+                                    className="md:hidden"
+                                >
+                                    <Menu className="h-5 w-5"/>
+                                </Button>
+                                <h2 className="ml-2 text-xl font-semibold text-gray-900 dark:text-white">
+                                    {navigation.find(item => item.href === pathname)?.name || 'Dashboard'}
+                                </h2>
+                            </div>
+
+                            <div className="flex items-center space-x-4">
+                                {/* Dark mode toggle */}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => dispatch(toggleDarkMode())}
+                                >
+                                    {darkMode ? <Sun className="h-5 w-5"/> : <Moon className="h-5 w-5"/>}
+                                </Button>
+
+                                {/* Sign out button */}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleSignOut}
+                                >
+                                    <LogOut className="h-5 w-5"/>
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page content */}
+                <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+                    <div className="py-6">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            {children}
+                        </div>
+                    </div>
+                </main>
             </div>
-          </div>
-        </main>
-      </div>
 
-        {/* Mobile sidebar overlay */}
-        {sidebarOpen && (
-            <div
-                className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 md:hidden"
-                onClick={() => dispatch(toggleSidebar())}
-            />
-        )}
-    </div>
-  );
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 md:hidden"
+                    onClick={() => dispatch(toggleSidebar())}
+                />
+            )}
+        </div>
+    );
 }

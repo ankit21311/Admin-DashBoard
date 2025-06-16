@@ -1,5 +1,11 @@
 {
-  "/not-found": "app/not-found.js",
+  "/_not-found": "app/_not-found.js",
+  "/auth/signin/page": "app/auth/signin/page.js",
+  "/dashboard/articles/page": "app/dashboard/articles/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/profile/page": "app/dashboard/profile/page.js",
   "/page": "app/page.js",
-  "/auth/signin/page": "app/auth/signin/page.js"
+  "/dashboard/reports/page": "app/dashboard/reports/page.js",
+  "/api/news/route": "app/api/news/route.js",
+  "/dashboard/payouts/page": "app/dashboard/payouts/page.js"
 }

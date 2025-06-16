@@ -3,13 +3,18 @@
 import {useState, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
 import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {toast} from 'react-hot-toast';
-import {signInWithGoogle} from '@/lib/firebase';
+import {signInWithGoogle, signInWithEmail, signUpWithEmail} from '@/lib/firebase';
 import {useAuth} from '@/contexts/AuthContext';
 
 export default function SignIn() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isSignUp, setIsSignUp] = useState(false);
     const router = useRouter();
     const {user, loading} = useAuth();
 
@@ -18,6 +23,48 @@ export default function SignIn() {
             router.push('/dashboard');
         }
     }, [user, loading, router]);
+
+    const handleEmailAuth = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            if (isSignUp) {
+                await signUpWithEmail(email, password, name);
+                toast.success('Account created successfully!');
+            } else {
+                await signInWithEmail(email, password);
+                toast.success('Successfully signed in!');
+            }
+            router.push('/dashboard');
+        } catch (error: any) {
+            let errorMessage = 'Authentication failed';
+
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    errorMessage = 'No account found with this email';
+                    break;
+                case 'auth/wrong-password':
+                    errorMessage = 'Incorrect password';
+                    break;
+                case 'auth/email-already-in-use':
+                    errorMessage = 'Email already in use';
+                    break;
+                case 'auth/weak-password':
+                    errorMessage = 'Password should be at least 6 characters';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Invalid email address';
+                    break;
+                default:
+                    errorMessage = error.message || 'Authentication failed';
+            }
+
+            toast.error(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
@@ -48,6 +95,27 @@ export default function SignIn() {
     }
   };
 
+    const handleDemoSignIn = async (demoType: 'admin' | 'user') => {
+        const demoCredentials = {
+            admin: {email: 'admin@example.com', password: 'admin123'},
+            user: {email: 'user@example.com', password: 'user123'}
+        };
+
+        setEmail(demoCredentials[demoType].email);
+        setPassword(demoCredentials[demoType].password);
+
+        setIsLoading(true);
+        try {
+            await signInWithEmail(demoCredentials[demoType].email, demoCredentials[demoType].password);
+            toast.success(`Signed in as demo ${demoType}!`);
+            router.push('/dashboard');
+        } catch (error) {
+            toast.error(`Demo ${demoType} account not found. Please create it first using the sign-up form.`);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
     if (loading) {
     return (
         <div className="min-h-screen flex items-center justify-center">
@@ -66,18 +134,20 @@ export default function SignIn() {
             <div className="max-w-md w-full space-y-8">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-                        Sign in to Admin Dashboard
+                        {isSignUp ? 'Create your account' : 'Sign in to Admin Dashboard'}
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-                        Use your Google account to access the dashboard
+                        Access your news and blog management dashboard
                     </p>
                 </div>
 
           <Card>
               <CardHeader>
-                  <CardTitle>Google Authentication</CardTitle>
+                  <CardTitle>
+                      {isSignUp ? 'Sign Up' : 'Sign In'}
+                  </CardTitle>
                   <CardDescription>
-                      Sign in with your Google account to access the admin dashboard
+                      Use Google or email authentication to access the dashboard
                   </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -109,31 +179,97 @@ export default function SignIn() {
                       {isLoading ? 'Signing in...' : 'Continue with Google'}
                   </Button>
 
-              {/* Info Section */}
-              <div className="text-center space-y-4">
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                          Admin Access
-                      </h4>
-                      <p className="text-sm text-blue-700 dark:text-blue-300">
-                          Admin privileges are granted based on your Google account email.
-                          Contact your administrator if you need admin access.
-                      </p>
+              <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t"/>
+              </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with email
+                </span>
+                </div>
+            </div>
+
+              {/* Email/Password Form */}
+              <form onSubmit={handleEmailAuth} className="space-y-4">
+                  {isSignUp && (
+                      <div>
+                          <Input
+                              type="text"
+                              placeholder="Full Name"
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                              required
+                          />
+                </div>
+              )}
+                <div>
+                    <Input
+                        type="email"
+                        placeholder="Email address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+                <div>
+                    <Input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <Button type="submit" disabled={isLoading} className="w-full">
+                    {isLoading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+                </Button>
+            </form>
+
+              {/* Toggle Sign Up/Sign In */}
+              <div className="text-center">
+                  <button
+                      type="button"
+                      onClick={() => setIsSignUp(!isSignUp)}
+                      className="text-sm text-primary hover:underline"
+                  >
+                      {isSignUp
+                          ? 'Already have an account? Sign in'
+                          : "Don't have an account? Sign up"
+                      }
+                  </button>
               </div>
 
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">
-                        Secure Authentication
-                    </h4>
-                    <p className="text-sm text-green-700 dark:text-green-300">
-                        Your authentication is handled securely by Google and Firebase.
-                        We never store your password.
+              {/* Demo Accounts */}
+              <div className="space-y-2">
+                  <p className="text-sm text-center text-muted-foreground">Quick Demo Access:</p>
+                  <div className="flex space-x-2">
+                      <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDemoSignIn('admin')}
+                          disabled={isLoading}
+                          className="flex-1"
+                      >
+                          Demo Admin
+                      </Button>
+                      <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDemoSignIn('user')}
+                          disabled={isLoading}
+                          className="flex-1"
+                      >
+                          Demo User
+                      </Button>
+              </div>
+                <div className="text-xs text-center text-muted-foreground">
+                    <p>Admin: admin@example.com / admin123</p>
+                    <p>User: user@example.com / user123</p>
+                    <p className="mt-1 text-orange-600 dark:text-orange-400">
+                        Create these accounts first if they don't exist
                     </p>
                 </div>
-
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                    <p>By signing in, you agree to our terms of service and privacy policy.</p>
-              </div>
             </div>
           </CardContent>
         </Card>

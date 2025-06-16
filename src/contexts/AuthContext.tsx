@@ -2,20 +2,38 @@
 
 import {createContext, useContext, useEffect, useState, ReactNode} from 'react';
 import {User} from 'firebase/auth';
-import {onAuthStateChange} from '@/lib/firebase';
+import {onAuthStateChange, createUserDocument, getUserDocument} from '@/lib/firebase';
+
+interface UserData {
+    id: string;
+    displayName: string;
+    email: string;
+    photoURL?: string;
+    role: 'admin' | 'user';
+    createdAt: any;
+    lastLoginAt: any;
+    updatedAt?: any;
+    bio?: string;
+    phone?: string;
+    location?: string;
+}
 
 interface AuthUser extends User {
     role?: 'admin' | 'user';
+    userData?: UserData;
 }
 
 interface AuthContextType {
     user: AuthUser | null;
     loading: boolean;
+    refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
+    refreshUserData: async () => {
+    },
 });
 
 export const useAuth = () => {
@@ -34,12 +52,40 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const fetchUserData = async (firebaseUser: User) => {
+        try {
+            // Create user document if it doesn't exist
+            await createUserDocument(firebaseUser);
+
+            // Fetch user data from Firestore
+            const userData = await getUserDocument(firebaseUser.uid);
+
+            // Determine user role
+            const role = determineUserRole(firebaseUser.email || '');
+
+            setUser({
+                ...firebaseUser,
+                role,
+                userData: userData as UserData
+            } as AuthUser);
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            // Fallback to basic user info
+            const role = determineUserRole(firebaseUser.email || '');
+            setUser({...firebaseUser, role} as AuthUser);
+        }
+    };
+
+    const refreshUserData = async () => {
+        if (user) {
+            await fetchUserData(user);
+        }
+    };
+
     useEffect(() => {
-        const unsubscribe = onAuthStateChange((firebaseUser) => {
+        const unsubscribe = onAuthStateChange(async (firebaseUser) => {
             if (firebaseUser) {
-                // Determine user role based on email or other criteria
-                const role = determineUserRole(firebaseUser.email || '');
-                setUser({...firebaseUser, role} as AuthUser);
+                await fetchUserData(firebaseUser);
             } else {
                 setUser(null);
             }
@@ -64,6 +110,7 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
     const value = {
         user,
         loading,
+        refreshUserData,
     };
 
     return (
