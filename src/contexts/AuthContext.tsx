@@ -113,7 +113,8 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
             id: demo.uid,
             displayName: demo.displayName,
             email: demo.email,
-            photoURL: demo.photoURL,
+            photoURL: demo.photoURL || undefined,  // or just set photoURL: undefined
+
             role: type,
             createdAt: new Date(),
             lastLoginAt: new Date(),
