@@ -67,6 +67,9 @@ export default function SignIn() {
             case 'auth/invalid-credential':
                 errorMessage = 'Invalid email or password';
                 break;
+            case 'auth/operation-not-allowed':
+                errorMessage = 'Email/password authentication is not enabled in Firebase. Please enable it in the Firebase console or use Google sign-in.';
+                break;
             default:
                 errorMessage = error.message || 'Authentication failed';
         }
@@ -117,34 +120,54 @@ export default function SignIn() {
 
     const handleDemoSignIn = async (demoType: 'admin' | 'user') => {
         const demoCredentials = {
-            admin: {email: 'admin@example.com', password: 'admin123'},
-            user: {email: 'user@example.com', password: 'user123'}
+            admin: {email: 'admin@example.com', password: 'admin123', name: 'Demo Admin'},
+            user: {email: 'user@example.com', password: 'user123', name: 'Demo User'}
         };
 
-      setEmail(demoCredentials[demoType].email);
-      setPassword(demoCredentials[demoType].password);
+        setEmail(demoCredentials[demoType].email);
+        setPassword(demoCredentials[demoType].password);
 
-      setIsLoading(true);
+        setIsLoading(true);
 
-      try {
-          console.log(`Signing in with demo ${demoType} account...`);
-          await signInWithEmail(demoCredentials[demoType].email, demoCredentials[demoType].password);
-          toast.success(`Signed in as demo ${demoType}!`);
+        try {
+            console.log(`Attempting to sign in with demo ${demoType} account...`);
 
-          // Don't manually redirect - let the useEffect handle it
-          console.log('Demo authentication successful - waiting for auth state update...');
+            // First try to sign in
+            await signInWithEmail(demoCredentials[demoType].email, demoCredentials[demoType].password);
+            toast.success(`Signed in as demo ${demoType}!`);
+            console.log('Demo authentication successful - waiting for auth state update...');
 
-      } catch (error: any) {
-          console.error('Demo auth error:', error);
-          if (error.code === 'auth/user-not-found') {
-              toast.error(`Demo ${demoType} account not found. Please create it first using the sign-up form.`);
-          } else {
-              toast.error(`Demo ${demoType} sign-in failed: ${error.message}`);
-          }
-    } finally {
-        setIsLoading(false);
-    }
-  };
+        } catch (error: any) {
+            console.error('Demo sign-in failed, attempting to create account:', error);
+
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                try {
+                    // If sign-in failed, try to create the account
+                    console.log(`Creating demo ${demoType} account...`);
+                    await signUpWithEmail(
+                        demoCredentials[demoType].email,
+                        demoCredentials[demoType].password,
+                        demoCredentials[demoType].name
+                    );
+                    toast.success(`Demo ${demoType} account created and signed in!`);
+                    console.log('Demo account creation successful - waiting for auth state update...');
+                } catch (createError: any) {
+                    console.error('Demo account creation failed:', createError);
+                    if (createError.code === 'auth/operation-not-allowed') {
+                        toast.error('Email/password authentication is not enabled in Firebase. Please enable it in the Firebase console or use Google sign-in.');
+                    } else {
+                        toast.error(`Failed to create demo ${demoType} account: ${createError.message}`);
+                    }
+                }
+            } else if (error.code === 'auth/operation-not-allowed') {
+                toast.error('Email/password authentication is not enabled in Firebase. Please enable it in the Firebase console or use Google sign-in.');
+            } else {
+                toast.error(`Demo ${demoType} sign-in failed: ${error.message}`);
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Show loading spinner while checking auth state
     if (loading) {
@@ -309,8 +332,8 @@ export default function SignIn() {
                 <div className="text-xs text-center text-muted-foreground">
                     <p>Admin: admin@example.com / admin123</p>
                     <p>User: user@example.com / user123</p>
-                    <p className="mt-1 text-orange-600 dark:text-orange-400">
-                        Create these accounts first if they don't exist
+                    <p className="mt-1 text-blue-600 dark:text-blue-400">
+                        Demo accounts will be created automatically
                     </p>
                 </div>
             </div>
