@@ -28,6 +28,15 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Optimize auth settings for better performance
+if (typeof window !== 'undefined') {
+    // Set auth language to user's preferred language for faster loading
+    auth.languageCode = navigator.language || 'en';
+
+    // Enable network optimizations
+    auth.settings.appVerificationDisabledForTesting = false;
+}
+
 // Initialize Analytics (only in browser environment)
 let analytics;
 if (typeof window !== 'undefined') {
@@ -35,26 +44,30 @@ if (typeof window !== 'undefined') {
         if (supported) {
             analytics = getAnalytics(app);
         }
+    }).catch(() => {
+        // Ignore analytics errors to prevent affecting auth performance
+        console.log('Analytics initialization skipped');
     });
 }
 
-// Google Auth Provider with custom parameters
+// Google Auth Provider with optimized configuration
 const googleProvider = new GoogleAuthProvider();
+// Only request essential scopes for faster sign-in
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
-googleProvider.setCustomParameters({
-    prompt: 'select_account'
-});
+// Remove prompt parameter to allow faster re-authentication for returning users
+// googleProvider.setCustomParameters({
+//     prompt: 'select_account'
+// });
 
 // Auth functions
 export const signInWithGoogle = async () => {
     try {
+        console.log('Starting Google sign-in...');
         const result = await signInWithPopup(auth, googleProvider);
         console.log('Google sign-in successful:', result.user.email);
 
-        // Create/update user document in background (fire-and-forget)
-        createUserDocumentBackground(result.user);
-
+        // Return immediately - no background operations
         return result;
     } catch (error) {
         console.error('Google sign-in error:', error);
@@ -64,12 +77,11 @@ export const signInWithGoogle = async () => {
 
 export const signInWithEmail = async (email: string, password: string) => {
     try {
+        console.log('Starting email sign-in...');
         const result = await signInWithEmailAndPassword(auth, email, password);
         console.log('Email sign-in successful:', result.user.email);
 
-        // Create/update user document in background (fire-and-forget)
-        createUserDocumentBackground(result.user);
-
+        // Return immediately - no background operations
         return result;
     } catch (error) {
         console.error('Email sign-in error:', error);
@@ -79,14 +91,12 @@ export const signInWithEmail = async (email: string, password: string) => {
 
 export const signUpWithEmail = async (email: string, password: string, displayName: string) => {
     try {
+        console.log('Starting email sign-up...');
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
         // Update user profile
         await updateProfile(user, {displayName});
-
-        // Create user document in Firestore in background (fire-and-forget)
-        createUserDocumentBackground(user, {displayName});
 
         console.log('Email sign-up successful:', user.email);
         return userCredential;

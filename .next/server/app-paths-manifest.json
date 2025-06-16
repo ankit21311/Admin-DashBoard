@@ -1,11 +1,4 @@
 {
   "/auth/signin/page": "app/auth/signin/page.js",
-  "/api/news/route": "app/api/news/route.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/settings/page": "app/dashboard/settings/page.js",
-  "/dashboard/articles/page": "app/dashboard/articles/page.js",
-  "/dashboard/analytics/page": "app/dashboard/analytics/page.js",
-  "/dashboard/payouts/page": "app/dashboard/payouts/page.js",
-  "/dashboard/reports/page": "app/dashboard/reports/page.js",
-  "/dashboard/profile/page": "app/dashboard/profile/page.js"
+  "/dashboard/page": "app/dashboard/page.js"
 }
