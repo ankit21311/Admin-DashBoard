@@ -8,7 +8,7 @@ interface UserData {
     id: string;
     displayName: string;
     email: string;
-    photoURL?: string;
+    photoURL?: string | null;
     role: 'admin' | 'user';
     createdAt: any;
     lastLoginAt: any;
@@ -97,13 +97,13 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
                 uid: 'demo-admin-uid',
                 email: 'admin@example.com',
                 displayName: 'Demo Admin',
-                photoURL: undefined,
+                photoURL: null,
             },
             user: {
                 uid: 'demo-user-uid',
                 email: 'user@example.com',
                 displayName: 'Demo User',
-                photoURL: undefined,
+                photoURL: null,
             }
         };
 
@@ -113,8 +113,7 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
             id: demo.uid,
             displayName: demo.displayName,
             email: demo.email,
-            photoURL: demo.photoURL || undefined,  // or just set photoURL: undefined
-
+            photoURL: demo.photoURL,
             role: type,
             createdAt: new Date(),
             lastLoginAt: new Date(),
