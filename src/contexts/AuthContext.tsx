@@ -97,13 +97,13 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
                 uid: 'demo-admin-uid',
                 email: 'admin@example.com',
                 displayName: 'Demo Admin',
-                photoURL: null,
+                photoURL: undefined,
             },
             user: {
                 uid: 'demo-user-uid',
                 email: 'user@example.com',
                 displayName: 'Demo User',
-                photoURL: null,
+                photoURL: undefined,
             }
         };
 
@@ -124,6 +124,8 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
             email: demo.email,
             displayName: demo.displayName,
             photoURL: demo.photoURL,
+            phoneNumber: null,
+            providerId: 'demo',
             emailVerified: true,
             isAnonymous: false,
             metadata: {
