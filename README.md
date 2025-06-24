@@ -79,7 +79,7 @@ Visit: [https://admin-dashboard-0jw7.onrender.com](https://admin-dashboard-0jw7.
 Click **"Demo Admin"** or **"Demo User"** and start exploring!
 
 ### Option 2: Run Locally
-Visit: [https://admin-dashboard-0jw7.onrender.com](https://adminashboard.netlify.app/)  
+Visit: [https://adminashboard.netlify.app/](https://adminashboard.netlify.app/)  
 
 ### Option 3: Run Locally
 ```bash
