@@ -74,7 +74,7 @@ No signup required — try out the **Demo Admin** or **Demo User** accounts on t
 
 ## 🚀 Quick Start
 
-### Option 1: Try the Live Demo (Working Fine)
+### Option 1: Try the Live Demo (Render - Working Fine)
 Visit: [https://admin-dashboard-0jw7.onrender.com](https://admin-dashboard-0jw7.onrender.com)  
 Click **"Demo Admin"** or **"Demo User"** and start exploring!
 
