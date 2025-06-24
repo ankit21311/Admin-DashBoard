@@ -3,7 +3,9 @@
 A comprehensive admin dashboard built with **Next.js**, **Firebase**, and modern UI components to manage news articles and blog posts with powerful features like analytics, payout calculations, exports, and more.
 
 ## 🌟 Live Demo
-🔗 [Experience the Dashboard Now](https://admin-dashboard-0jw7.onrender.com)  
+🔗 [Experience the Dashboard Now](https://admin-dashboard-0jw7.onrender.com)  (Render)
+OR 
+🔗 [Experience the Dashboard Now](https://adminashboard.netlify.app/)  (Netlify-Here You may face Authentication Issue)
 No signup required — try out the **Demo Admin** or **Demo User** accounts on the sign-in page.
 
 ## ✨ Quick Demo Access
