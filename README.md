@@ -74,11 +74,11 @@ No signup required — try out the **Demo Admin** or **Demo User** accounts on t
 
 ## 🚀 Quick Start
 
-### Option 1: Try the Live Demo
+### Option 1: Try the Live Demo (Working Fine)
 Visit: [https://admin-dashboard-0jw7.onrender.com](https://admin-dashboard-0jw7.onrender.com)  
 Click **"Demo Admin"** or **"Demo User"** and start exploring!
 
-### Option 2: Run Locally
+### Option 2: Try the Live Demo (Netlify - May Face Authentication Issue)
 Visit: [https://adminashboard.netlify.app/](https://adminashboard.netlify.app/)  
 
 ### Option 3: Run Locally
